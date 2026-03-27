@@ -64,3 +64,31 @@ class OrderService:
         logger.info(f"Order {order.id} placed by buyer {buyer.id}")
         return order
 
+    def get_order_by_id(self, db: Session, order_id: str, user: User) -> Order:
+        order = (
+            db.query(Order)
+            .options(joinedload(Order.listing), joinedload(Order.buyer))
+            .filter(Order.id == order_id)
+            .first()
+        )
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+
+        is_buyer  = str(order.buyer_id)             == str(user.id)
+        is_seller = str(order.listing.seller_id)    == str(user.id)
+
+        if not is_buyer and not is_seller:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this order"
+            )
+
+        return order
+
+    
+
+
