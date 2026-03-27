@@ -13,6 +13,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .routes.user import router as user_router
 from .routes.order import router as order_router
 from .routes.listing import router as listing_router
+from .routes.analytics import router as analytics_router
+
 from .core.cors import setup_cors 
 app = FastAPI(title="DeadStock API", version="1.0.0")
 
@@ -50,3 +52,4 @@ def health_check():
 app.include_router(user_router)
 app.include_router(order_router)
 app.include_router(listing_router)
+app.include_router(analytics_router)
