@@ -10,16 +10,15 @@ from .core.errors import AppError
 from .core.logger import logger
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from .routes.user import router as user_router
 
 app = FastAPI(title="DeadStock API", version="1.0.0")
 
-# Register exception handlers in order of specificity
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 
-# Initialize database tables
 try:
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
@@ -43,3 +42,5 @@ def health_check():
         "service": "DeadStock API",
         "version": "1.0.0"
     }
+    
+app.include_router(user_router)
