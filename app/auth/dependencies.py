@@ -30,3 +30,18 @@ def get_current_user(creds:HTTPAuthorizationCredentials=Depends(bearer),db:Sessi
     
     return user
     
+def require_seller(user: User = Depends(get_current_user)) -> User:
+    if user.role != "seller":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only sellers can perform this action"
+        )
+    return user
+
+def require_buyer(user: User = Depends(get_current_user)) -> User:
+    if user.role != "buyer":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only buyers can perform this action"
+        )
+    return user
