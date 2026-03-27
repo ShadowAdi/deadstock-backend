@@ -175,3 +175,5 @@ class AnalyticsService:
                 "units":   int(top_listing.units)               if top_listing else 0,
             }
         }
+        
+analytics_service = AnalyticsService()
