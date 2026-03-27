@@ -46,3 +46,19 @@ class ListingService:
         
         logger.info(f"Listing {listing.id} created by seller {seller.id}")
         return listing
+    
+    def get_listing_by_id(self, db: Session, listing_id: str) -> Listing:
+        listing = (
+            db.query(Listing)
+            .options(joinedload(Listing.seller))
+            .filter(Listing.id == listing_id)
+            .first()
+        )
+
+        if not listing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Listing not found"
+            )
+
+        return listing
