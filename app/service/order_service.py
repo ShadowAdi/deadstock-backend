@@ -88,6 +88,62 @@ class OrderService:
             )
 
         return order
+    
+    def get_buyer_orders(self, db: Session, buyer: User) -> list[Order]:
+        orders = (
+            db.query(Order)
+            .options(joinedload(Order.listing).joinedload(Listing.seller))
+            .filter(Order.buyer_id == buyer.id)
+            .order_by(Order.created_at.desc())
+            .all()
+        )
+        return orders
+    
+    def get_seller_orders(self, db: Session, seller: User) -> list[Order]:
+        orders = (
+            db.query(Order)
+            .join(Listing, Order.listing_id == Listing.id)
+            .options(joinedload(Order.listing), joinedload(Order.buyer))
+            .filter(Listing.seller_id == seller.id)
+            .order_by(Order.created_at.desc())
+            .all()
+        )
+        return orders
+    
+    def cancel_order(self, db: Session, order_id: str, buyer: User) -> Order:
+        order = db.query(Order).filter(Order.id == order_id).first()
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+
+        if str(order.buyer_id) != str(buyer.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only cancel your own orders"
+            )
+
+        if order.status != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot cancel an order that is already {order.status}"
+            )
+
+        listing = db.query(Listing).filter(Listing.id == order.listing_id).first()
+        if listing:
+            listing.quantity += order.quantity
+            if listing.status == "sold":       
+                listing.status = "active"
+
+        order.status = "cancelled"
+        db.commit()
+        db.refresh(order)
+
+        logger.info(f"Order {order.id} cancelled by buyer {buyer.id}")
+        return order
+
 
     
 
