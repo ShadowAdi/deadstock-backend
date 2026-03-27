@@ -225,4 +225,19 @@ class ListingService:
 
         return listings
     
+    def get_by_category(self, db: Session, category: str) -> list[Listing]:
+        listings = (
+            db.query(Listing)
+            .options(joinedload(Listing.seller))
+            .filter(
+                Listing.category.ilike(f"%{category}%"),
+                Listing.status == "active"
+            )
+            .order_by(Listing.created_at.desc())
+            .all()
+        )
+
+        return listings
+
+    
     
