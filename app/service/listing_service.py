@@ -62,3 +62,53 @@ class ListingService:
             )
 
         return listing
+    
+    def get_all_listings(
+        self,
+        db:         Session,
+        category:   str  = None,
+        city:       str  = None,
+        max_price:  float = None,
+        min_price:  float = None,
+        q:          str  = None,      
+        page:       int  = 1,
+        page_size:  int  = 20,
+    ) -> dict:
+
+        query = (
+            db.query(Listing)
+            .options(joinedload(Listing.seller))
+            .filter(Listing.status == "active")
+        )
+
+        if q:
+            query = query.filter(
+                or_(
+                    Listing.title.ilike(f"%{q}%"),
+                    Listing.description.ilike(f"%{q}%")
+                )
+            )
+
+        if category:
+            query = query.filter(Listing.category.ilike(f"%{category}%"))
+
+        if city:
+            query = query.filter(Listing.city.ilike(f"%{city}%"))
+
+        if max_price:
+            query = query.filter(Listing.discount_price <= max_price)
+
+        if min_price:
+            query = query.filter(Listing.discount_price >= min_price)
+
+        total   = query.count()
+        offset  = (page - 1) * page_size
+        listings = query.order_by(Listing.created_at.desc()).offset(offset).limit(page_size).all()
+
+        return {
+            "listings":  listings,
+            "total":     total,
+            "page":      page,
+            "page_size": page_size,
+            "pages":     (total + page_size - 1) // page_size
+        }
