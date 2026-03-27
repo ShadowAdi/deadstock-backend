@@ -112,3 +112,17 @@ class ListingService:
             "page_size": page_size,
             "pages":     (total + page_size - 1) // page_size
         }
+    
+    def get_my_listings(
+        self,
+        db:        Session,
+        seller:    User,
+        status_filter: str = None    
+    ) -> list[Listing]:
+
+        query = db.query(Listing).filter(Listing.seller_id == seller.id)
+
+        if status_filter:
+            query = query.filter(Listing.status == status_filter)
+
+        return query.order_by(Listing.created_at.desc()).all()
