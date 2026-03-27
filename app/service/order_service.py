@@ -143,6 +143,74 @@ class OrderService:
 
         logger.info(f"Order {order.id} cancelled by buyer {buyer.id}")
         return order
+    
+    def confirm_order(self, db: Session, order_id: str, seller: User) -> Order:
+        order = (
+            db.query(Order)
+            .options(joinedload(Order.listing))
+            .filter(Order.id == order_id)
+            .first()
+        )
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+
+        if str(order.listing.seller_id) != str(seller.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only confirm orders on your own listings"
+            )
+
+        if order.status != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Order is already {order.status}"
+            )
+
+        order.status = "confirmed"
+        db.commit()
+        db.refresh(order)
+
+        logger.info(f"Order {order.id} confirmed by seller {seller.id}")
+        return order
+
+
+    def complete_order(self, db: Session, order_id: str, seller: User) -> Order:
+        order = (
+            db.query(Order)
+            .options(joinedload(Order.listing))
+            .filter(Order.id == order_id)
+            .first()
+        )
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+
+        if str(order.listing.seller_id) != str(seller.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only complete orders on your own listings"
+            )
+
+        if order.status != "confirmed":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Order must be confirmed before marking complete"
+            )
+
+        order.status = "completed"
+        db.commit()
+        db.refresh(order)
+
+        logger.info(f"Order {order.id} completed by seller {seller.id}")
+        return order
+
 
 
     
