@@ -238,6 +238,17 @@ class ListingService:
         )
 
         return listings
+    
+    def compute_discount_pct(self, listing: Listing) -> float:
+        if listing.original_price == 0:
+            return 0.0
+        return round(
+            ((listing.original_price - listing.discount_price) / listing.original_price) * 100,
+            2
+        )
+
+
+listing_service = ListingService()
 
     
     
