@@ -103,3 +103,5 @@ class UserService:
             "seller":         seller,
             "listings_count": len([l for l in seller.listings if l.status == "active"])
         }
+
+user_service=UserService()
