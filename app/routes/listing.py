@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.db import get_db
-from app.auth.dependencies import get_current_user, require_seller, require_buyer
+from app.auth.dependencies import require_seller
 from service.listing_service import listing_service
 from schemas.listing import (
     CreateListingRequest,
