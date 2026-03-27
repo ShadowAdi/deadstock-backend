@@ -3,12 +3,11 @@ from sqlalchemy import func, desc
 from models.listings import Listing
 from models.order import Order
 from models.User import User
-import logging
-
-logger = logging.getLogger(__name__)
+from core.logger import logger
 
 class AnalyticsService:
     def get_trending_categories(self,db:Session)->list[dict]:
+        logger.info("Fetching trending categories analytics")
         results=(
             db.query(
                 Listing.category,
@@ -18,6 +17,7 @@ class AnalyticsService:
             ).join(Order,Order.listing_id==Listing.id).filter(Order.status.in_(["confirmed", "completed"])).group_by(Listing.category).order_by(desc("total_orders")).limit(10).all()
         )
         
+        logger.info(f"Retrieved {len(results)} trending categories")
         return [
             {
                 "category":        row.category,
@@ -29,6 +29,7 @@ class AnalyticsService:
         ]
     
     def get_total_savings(self, db: Session) -> dict:
+        logger.info("Fetching total savings analytics")
         completed = (
             db.query(func.sum(Order.total_price))
             .filter(Order.status.in_(["confirmed", "completed"]))
@@ -68,6 +69,7 @@ class AnalyticsService:
         }
         
     def get_seller_dashboard(self, db: Session, seller: User) -> dict:
+        logger.info(f"Fetching dashboard analytics for seller {seller.id}")
 
         listing_stats = (
             db.query(
