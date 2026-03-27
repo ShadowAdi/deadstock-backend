@@ -4,25 +4,26 @@ from fastapi import HTTPException, status
 from models.listings import Listing
 from models.User import User
 from schemas.listing import CreateListingRequest, UpdateListingRequest
-import logging
-
-logger = logging.getLogger(__name__)
+from core.logger import logger
 
 class ListingService:
     def create_listing(self,db:Session,seller:User,data:CreateListingRequest)->Listing:
         if data.discount_price>=data.original_price:
+            logger.warning(f"Listing creation failed: discount price {data.discount_price} >= original price {data.original_price} for seller {seller.id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Discount price must be lower than original price"
             )
         
         if data.quantity <= 0:
+            logger.warning(f"Listing creation failed: invalid quantity {data.quantity} provided by seller {seller.id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Quantity must be at least 1"
             )
 
         if data.discount_price<=0 or data.original_price<=0:
+            logger.warning(f"Listing creation failed: invalid prices (discount: {data.discount_price}, original: {data.original_price}) for seller {seller.id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Prices must be greater than 0"
@@ -56,6 +57,7 @@ class ListingService:
         )
 
         if not listing:
+            logger.warning(f"Listing {listing_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Listing not found"
@@ -139,18 +141,21 @@ class ListingService:
         listing = db.query(Listing).filter(Listing.id == listing_id).first()
 
         if not listing:
+            logger.warning(f"Update listing failed: listing {listing_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Listing not found"
             )
 
         if str(listing.seller_id) != str(seller.id):
+            logger.warning(f"Seller {seller.id} attempted to edit listing {listing_id} they don't own")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only edit your own listings"
             )
 
         if listing.status == "sold":
+            logger.warning(f"Update listing failed: listing {listing_id} is already sold, cannot edit")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cannot edit a listing that is already sold"
@@ -162,6 +167,7 @@ class ListingService:
         new_original = update_data.get("original_price", listing.original_price)
 
         if new_discount >= new_original:
+            logger.warning(f"Update listing failed: new discount price {new_discount} >= original price {new_original} for listing {listing_id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Discount price must be lower than original price"
@@ -180,12 +186,14 @@ class ListingService:
         listing = db.query(Listing).filter(Listing.id == listing_id).first()
 
         if not listing:
+            logger.warning(f"Delete listing failed: listing {listing_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Listing not found"
             )
 
         if str(listing.seller_id) != str(seller.id):
+            logger.warning(f"Seller {seller.id} attempted to delete listing {listing_id} they don't own")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only delete your own listings"
@@ -206,6 +214,7 @@ class ListingService:
     
     def get_nearby_listings(self, db: Session, city: str) -> list[Listing]:
         if not city:
+            logger.warning("Get nearby listings failed: city parameter is required")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="City is required"
