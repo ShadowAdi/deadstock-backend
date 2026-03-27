@@ -27,3 +27,42 @@ class AnalyticsService:
             }
             for row in results
         ]
+    
+    def get_total_savings(self, db: Session) -> dict:
+        completed = (
+            db.query(func.sum(Order.total_price))
+            .filter(Order.status.in_(["confirmed", "completed"]))
+            .scalar() or 0
+        )
+        
+        original_value = (
+            db.query(
+                func.sum(Listing.original_price * Order.quantity)
+            )
+            .join(Order, Order.listing_id == Listing.id)
+            .filter(Order.status.in_(["confirmed", "completed"]))
+            .scalar() or 0
+        )
+
+        total_saved     = original_value - completed
+        total_orders    = db.query(func.count(Order.id)).filter(
+            Order.status.in_(["confirmed", "completed"])
+        ).scalar() or 0
+        total_listings  = db.query(func.count(Listing.id)).scalar() or 0
+        active_listings = db.query(func.count(Listing.id)).filter(
+            Listing.status == "active"
+        ).scalar() or 0
+
+        return {
+            "total_saved_inr":       round(float(total_saved), 2),
+            "total_traded_value_inr": round(float(completed), 2),
+            "original_value_inr":    round(float(original_value), 2),
+            "total_orders_completed": int(total_orders),
+            "total_listings":        int(total_listings),
+            "active_listings":       int(active_listings),
+            "avg_discount_pct":      round(
+                (float(total_saved) / float(original_value) * 100)
+                if original_value > 0 else 0,
+                2
+            ),
+        }
