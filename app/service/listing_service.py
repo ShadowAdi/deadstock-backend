@@ -204,3 +204,25 @@ class ListingService:
         return "deleted"
     
     
+    def get_nearby_listings(self, db: Session, city: str) -> list[Listing]:
+        if not city:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="City is required"
+            )
+
+        listings = (
+            db.query(Listing)
+            .options(joinedload(Listing.seller))
+            .filter(
+                Listing.city.ilike(f"%{city}%"),
+                Listing.status == "active"
+            )
+            .order_by(Listing.created_at.desc())
+            .limit(50)
+            .all()
+        )
+
+        return listings
+    
+    
