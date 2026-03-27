@@ -126,3 +126,52 @@ class ListingService:
             query = query.filter(Listing.status == status_filter)
 
         return query.order_by(Listing.created_at.desc()).all()
+    
+    
+    def update_listing(
+        self,
+        db:         Session,
+        listing_id: str,
+        seller:     User,
+        data:       UpdateListingRequest
+    ) -> Listing:
+
+        listing = db.query(Listing).filter(Listing.id == listing_id).first()
+
+        if not listing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Listing not found"
+            )
+
+        if str(listing.seller_id) != str(seller.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only edit your own listings"
+            )
+
+        if listing.status == "sold":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot edit a listing that is already sold"
+            )
+
+        update_data = data.model_dump(exclude_unset=True)  
+
+        new_discount = update_data.get("discount_price", listing.discount_price)
+        new_original = update_data.get("original_price", listing.original_price)
+
+        if new_discount >= new_original:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Discount price must be lower than original price"
+            )
+
+        for field, value in update_data.items():
+            setattr(listing, field, value)
+
+        db.commit()
+        db.refresh(listing)
+
+        logger.info(f"Listing {listing.id} updated by seller {seller.id}")
+        return listing
