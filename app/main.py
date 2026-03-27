@@ -13,8 +13,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .routes.user import router as user_router
 from .routes.order import router as order_router
 from .routes.listing import router as listing_router
-
+from .core.cors import setup_cors 
 app = FastAPI(title="DeadStock API", version="1.0.0")
+
+setup_cors(app=app)
 
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
