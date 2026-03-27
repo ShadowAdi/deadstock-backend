@@ -211,8 +211,5 @@ class OrderService:
         logger.info(f"Order {order.id} completed by seller {seller.id}")
         return order
 
-
-
-    
-
+order_service = OrderService()
 
