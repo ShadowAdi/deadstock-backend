@@ -1,3 +1,3 @@
-from models.user import User
-from models.listing import Listing
+from models.User import User
+from models.listings import Listing
 from models.order import Order
