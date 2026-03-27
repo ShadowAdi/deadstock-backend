@@ -74,3 +74,32 @@ class UserService:
                 detail="Profile not found"
             )
         return user
+
+    def update_profile(self, db: Session, current_user: User, data: dict) -> User:
+        allowed_fields = {"business_name", "city", "phone"}
+
+        for field, value in data.items():
+            if field in allowed_fields and value is not None:
+                setattr(current_user, field, value)
+
+        db.commit()
+        db.refresh(current_user)
+        return current_user
+
+
+    def get_seller_profile(self, db: Session, seller_id: str) -> dict:
+        seller = db.query(User).filter(
+            User.id   == seller_id,
+            User.role == "seller"
+        ).first()
+
+        if not seller:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Seller not found"
+            )
+
+        return {
+            "seller":         seller,
+            "listings_count": len([l for l in seller.listings if l.status == "active"])
+        }
