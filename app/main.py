@@ -11,6 +11,7 @@ from .core.logger import logger
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from .routes.user import router as user_router
+from .routes.order import router as order_router
 
 app = FastAPI(title="DeadStock API", version="1.0.0")
 
@@ -44,3 +45,4 @@ def health_check():
     }
     
 app.include_router(user_router)
+app.include_router(order_router)
