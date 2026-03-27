@@ -175,3 +175,32 @@ class ListingService:
 
         logger.info(f"Listing {listing.id} updated by seller {seller.id}")
         return listing
+    
+    def delete_listing(self, db: Session, listing_id: str, seller: User) -> bool:
+        listing = db.query(Listing).filter(Listing.id == listing_id).first()
+
+        if not listing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Listing not found"
+            )
+
+        if str(listing.seller_id) != str(seller.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only delete your own listings"
+            )
+
+        if listing.orders:
+            listing.status = "closed"
+            db.commit()
+            logger.info(f"Listing {listing.id} closed (has orders) by seller {seller.id}")
+            return "closed"
+
+        db.delete(listing)
+        db.commit()
+
+        logger.info(f"Listing {listing.id} deleted by seller {seller.id}")
+        return "deleted"
+    
+    
