@@ -4,9 +4,7 @@ from models.order import Order
 from models.listings import Listing
 from models.User import User
 from schemas.order import CreateOrderRequest
-import logging
-
-logger = logging.getLogger(__name__)
+from core.logger import logger
 
 class OrderService:
     def create_order(self,db:Session,buyer:User,data:CreateOrderRequest)->Order:
@@ -19,24 +17,28 @@ class OrderService:
             )
         
         if str(listing.seller_id) == str(buyer.id):
+            logger.warning(f"Buyer {buyer.id} attempted to order their own listing {listing.id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="You cannot place an order on your own listing"
             )
         
         if listing.status != "active":
+            logger.warning(f"Order creation failed: listing {listing.id} has status '{listing.status}'")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="This listing is no longer available"
             )
         
         if data.quantity > listing.quantity:
+            logger.warning(f"Order creation failed: requested quantity {data.quantity} exceeds available {listing.quantity} for listing {listing.id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Only {listing.quantity} units available"
             )
 
         if data.quantity <= 0:
+            logger.warning(f"Order creation failed: invalid quantity {data.quantity} provided by buyer {buyer.id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Quantity must be at least 1"
@@ -73,6 +75,7 @@ class OrderService:
         )
 
         if not order:
+            logger.warning(f"Order {order_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Order not found"
@@ -82,6 +85,7 @@ class OrderService:
         is_seller = str(order.listing.seller_id)    == str(user.id)
 
         if not is_buyer and not is_seller:
+            logger.warning(f"User {user.id} attempted unauthorized access to order {order_id}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have access to this order"
@@ -114,18 +118,21 @@ class OrderService:
         order = db.query(Order).filter(Order.id == order_id).first()
 
         if not order:
+            logger.warning(f"Cancel order failed: order {order_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Order not found"
             )
 
         if str(order.buyer_id) != str(buyer.id):
+            logger.warning(f"User {buyer.id} attempted to cancel order {order_id} they don't own")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only cancel your own orders"
             )
 
         if order.status != "pending":
+            logger.warning(f"Cancel order failed: order {order_id} has status '{order.status}', cannot cancel")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Cannot cancel an order that is already {order.status}"
@@ -153,18 +160,21 @@ class OrderService:
         )
 
         if not order:
+            logger.warning(f"Confirm order failed: order {order_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Order not found"
             )
 
         if str(order.listing.seller_id) != str(seller.id):
+            logger.warning(f"Seller {seller.id} attempted to confirm order {order_id} for listing they don't own")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only confirm orders on your own listings"
             )
 
         if order.status != "pending":
+            logger.warning(f"Confirm order failed: order {order_id} has status '{order.status}', cannot confirm")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Order is already {order.status}"
@@ -187,18 +197,21 @@ class OrderService:
         )
 
         if not order:
+            logger.warning(f"Complete order failed: order {order_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Order not found"
             )
 
         if str(order.listing.seller_id) != str(seller.id):
+            logger.warning(f"Seller {seller.id} attempted to complete order {order_id} for listing they don't own")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only complete orders on your own listings"
             )
 
         if order.status != "confirmed":
+            logger.warning(f"Complete order failed: order {order_id} has status '{order.status}', must be 'confirmed'")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Order must be confirmed before marking complete"
