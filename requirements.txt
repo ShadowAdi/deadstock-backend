@@ -9,4 +9,4 @@ python-jose
 email-validator
 requests
 python-multipart
-bcrypt
+bcrypt==3.2.0
