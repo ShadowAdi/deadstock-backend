@@ -8,3 +8,4 @@ passlib
 python-jose
 email-validator
 requests
+python-multipart
