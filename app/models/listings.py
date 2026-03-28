@@ -9,7 +9,7 @@ class Listing(Base):
     __tablename__="listings"
     
     id = Column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4)
-    seller_id=Column(UUID(as_uuid=True))
+    seller_id=Column(UUID(as_uuid=True), ForeignKey("users.id"))
     title=Column(String,  nullable=False)
     description=Column(String,nullable=True)
     category=Column(String,  nullable=False, index=True)
