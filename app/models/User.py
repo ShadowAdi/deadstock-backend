@@ -10,7 +10,7 @@ class User(Base):
     
     id = Column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4)
     email=Column(String,unique=True,nullable=False,index=True)
-    password = Column(String, nullable=False)
+    password_hash = Column(String, nullable=False)
     role          = Column(SAEnum("seller", "buyer", name="user_role"), nullable=False)
     business_name = Column(String, nullable=False)
     city          = Column(String, nullable=False)
