@@ -18,4 +18,4 @@ class User(Base):
     created_at    = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     listings=relationship("Listing",back_populates="seller")
-    orders=relationship("Order",back_populates="orders")
+    orders=relationship("Order",back_populates="buyer")
