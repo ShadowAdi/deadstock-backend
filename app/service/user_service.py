@@ -23,7 +23,7 @@ class UserService:
         
         user = User(
             email         = data.email,
-            password = hash_password(data.password),
+            password_hash = hash_password(data.password),
             role          = data.role,
             business_name = data.business_name,
             city          = data.city,
@@ -40,7 +40,7 @@ class UserService:
     def login(self, db: Session, data: LoginRequest) -> dict:
         user=db.query(User).filter(User.email==data.email).first()
         
-                if not user or not verify_password(data.password, user.password_hash):
+        if not user or not verify_password(data.password, user.password_hash):
             logger.error('Invalid email or password')
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
