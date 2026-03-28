@@ -3,7 +3,7 @@ from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 from enum import Enum
-from schemas.base import BaseResponse
+from .base import BaseResponse
 
 class ListingStatus(str, Enum):
     active="active"
