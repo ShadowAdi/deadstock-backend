@@ -5,6 +5,7 @@ def setup_cors(app:FastAPI):
     origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://deadstock-f6xattdms-kakansha611-9841s-projects.vercel.app"
     ]
     
     app.add_middleware(
