@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, File, UploadFile, Form
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.auth.dependencies import get_current_user, require_buyer, require_seller
@@ -12,17 +13,21 @@ from app.schemas.order import (
 )
 from app.schemas.base import BaseResponse
 from app.models.User import User
+from uuid import UUID
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
-def place_order(
-    data:  CreateOrderRequest,
+async def place_order(
+    listing_id: UUID = Form(...),
+    quantity: int = Form(...),
+    images: Optional[List[UploadFile]] = File(None),
     buyer: User    = Depends(require_buyer),
     db:    Session = Depends(get_db)
 ):
-    order = order_service.create_order(db, buyer, data)
+    data = CreateOrderRequest(listing_id=listing_id, quantity=quantity)
+    order = await order_service.create_order(db, buyer, data, images)
     return OrderResponse(
         success = True,
         message = "Order placed successfully",

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, Integer, Enum as SAEnum, DateTime, ForeignKey
+from sqlalchemy import Column, Float, Integer, Enum as SAEnum, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db import Base
@@ -13,6 +13,7 @@ class Order(Base):
     listing_id  = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=False)
     quantity=Column(Integer,nullable=False)
     total_price=Column(Float,nullable=False)
+    image_urls = Column(JSON, nullable=True)
     status=Column(
         SAEnum("pending", "confirmed", "completed", "cancelled", name="order_status"),
         default="pending"

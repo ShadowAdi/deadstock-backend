@@ -23,6 +23,7 @@ class OrderData(BaseModel):
     total_price: float
     status:      OrderStatus
     created_at:  datetime
+    image_urls: Optional[List[str]] = None
     
     class Config:
         from_attributes=True

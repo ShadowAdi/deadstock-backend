@@ -1,13 +1,15 @@
 from sqlalchemy.orm import Session, joinedload
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from app.models.order import Order
 from app.models.listings import Listing
 from app.models.User import User
 from app.schemas.order import CreateOrderRequest
 from app.core.logger import logger
+from app.core.uploader import upload_files
+from typing import List, Optional
 
 class OrderService:
-    def create_order(self,db:Session,buyer:User,data:CreateOrderRequest)->Order:
+    async def create_order(self,db:Session,buyer:User,data:CreateOrderRequest, images: Optional[List[UploadFile]] = None)->Order:
         listing = db.query(Listing).filter(Listing.id == data.listing_id).first()
         if not listing:
             logger.error('Listing does not exist')
@@ -44,6 +46,10 @@ class OrderService:
                 detail="Quantity must be at least 1"
             )
         
+        image_urls = []
+        if images:
+            image_urls = await upload_files(images)
+
         total_price = listing.discount_price * data.quantity
 
         order = Order(
@@ -51,7 +57,8 @@ class OrderService:
             listing_id  = listing.id,
             quantity    = data.quantity,
             total_price = total_price,
-            status      = "pending"
+            status      = "pending",
+            image_urls = image_urls
         )
 
         listing.quantity -= data.quantity
