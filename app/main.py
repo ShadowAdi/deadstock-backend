@@ -14,6 +14,9 @@ from .routes.user import router as user_router
 from .routes.order import router as order_router
 from .routes.listing import router as listing_router
 from .routes.analytics import router as analytics_router
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from .core.cors import setup_cors 
 app = FastAPI(title="DeadStock API", version="1.0.0")
