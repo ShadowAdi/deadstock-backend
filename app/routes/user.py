@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from app.db import get_db
 from app.auth.dependencies import get_current_user
 from app.service.user_service import user_service
@@ -12,6 +13,7 @@ from app.schemas.base import BaseResponse
 from app.models.User import User
 from pydantic import BaseModel
 from typing import Optional
+from sqlalchemy import text
 
 router = APIRouter(prefix="/user", tags=["Auth & Users"])
 
@@ -82,3 +84,9 @@ def get_seller_profile(seller_id: str, db: Session = Depends(get_db)):
             "listings_count": result["listings_count"]
         }
     )
+
+@router.get("/create-enum")
+def create_enum(db: Session = Depends(get_db)):
+    db.execute(text("CREATE TYPE user_role AS ENUM ('seller', 'buyer')"))
+    db.commit()
+    return {"message": "Enum created"}
