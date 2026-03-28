@@ -12,8 +12,9 @@ TOKEN_EXPIRE  = 60 * 24
 
 pwd_context= CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def hash_password(password:str)->str:
-    return pwd_context.hash(password)
+def hash_password(password: str) -> str:
+    # Truncate password to 72 bytes for bcrypt compatibility
+    return pwd_context.hash(password.encode('utf-8')[:72])
 
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
