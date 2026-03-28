@@ -3,16 +3,16 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app.db import get_db
 from app.auth.dependencies import require_seller
-from service.listing_service import listing_service
-from schemas.listing import (
+from app.service.listing_service import listing_service
+from app.schemas.listing import (
     CreateListingRequest,
     UpdateListingRequest,
     ListingResponse,
     ListingsResponse,
     ListingData,
 )
-from schemas.base import BaseResponse
-from models.User import User
+from app.schemas.base import BaseResponse
+from app.models.User import User
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
 

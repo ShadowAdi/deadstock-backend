@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.db import get_db
-from app.auth import get_current_user, require_buyer, require_seller
-from service.order_service import order_service
-from schemas.order import (
+from app.auth.dependencies import get_current_user, require_buyer, require_seller
+from app.service.order_service import order_service
+from app.schemas.order import (
     CreateOrderRequest,
     OrderResponse,
     OrdersResponse,
     OrderData,
     OrderWithListingData
 )
-from schemas.base import BaseResponse
-from models.User import User
+from app.schemas.base import BaseResponse
+from app.models.User import User
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 

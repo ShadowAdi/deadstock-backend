@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.User import User
-from schemas.user import RegisterRequest, LoginRequest
-from auth.utils import hash_password, verify_password, create_access_token
+from app.schemas.user import RegisterRequest, LoginRequest
+from app.auth.utils import hash_password, verify_password, create_access_token
 from app.core.logger import logger
 
 class UserService:

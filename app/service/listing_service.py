@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 from fastapi import HTTPException, status
-from models.listings import Listing
-from models.User import User
-from schemas.listing import CreateListingRequest, UpdateListingRequest
-from core.logger import logger
+from app.models.listings import Listing
+from app.models.User import User
+from app.schemas.listing import CreateListingRequest, UpdateListingRequest
+from app.core.logger import logger
 
 class ListingService:
     def create_listing(self,db:Session,seller:User,data:CreateListingRequest)->Listing:

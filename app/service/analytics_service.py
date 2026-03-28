@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from models.listings import Listing
-from models.order import Order
-from models.User import User
-from core.logger import logger
+from app.models.listings import Listing
+from app.models.order import Order
+from app.models.User import User
+from app.core.logger import logger
 
 class AnalyticsService:
     def get_trending_categories(self,db:Session)->list[dict]:

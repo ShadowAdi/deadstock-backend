@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.auth.dependencies import get_current_user
-from service.user_service import user_service
-from schemas.user import (
+from app.service.user_service import user_service
+from app.schemas.user import (
     RegisterRequest, LoginRequest,
     RegisterResponse, LoginResponse,
     ProfileResponse, TokenData, UserData
 )
-from schemas.base import BaseResponse
-from models.User import User
+from app.schemas.base import BaseResponse
+from app.models.User import User
 from pydantic import BaseModel
 from typing import Optional
 
