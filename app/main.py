@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
+load_dotenv()
 import os
 
 # Load environment variables from .env file
-load_dotenv()
 
 from fastapi import FastAPI
 from app.core.cors import setup_cors

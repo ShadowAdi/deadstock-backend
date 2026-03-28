@@ -29,8 +29,12 @@ def connect_with_retry(database_url: str, max_retries: int = 5, initial_delay: f
     while retry_count < max_retries:
         try:
             logger.info(f"Attempting to connect to database (attempt {retry_count + 1}/{max_retries})...")
-            engine = create_engine(database_url, echo=False, pool_pre_ping=True)
-            
+            engine = create_engine(
+                database_url,
+                echo=False,
+                pool_pre_ping=True,
+                connect_args={"sslmode": "require"}
+            )            
             # Test database connection
             with engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
