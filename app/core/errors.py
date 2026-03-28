@@ -1,9 +1,12 @@
 from datetime import datetime
 from typing import Optional, Dict, Any
+from fastapi.responses import JSONResponse
+from .logger import logger
+
 
 class AppError(Exception):
     """Custom application error with detailed context"""
-    
+
     def __init__(
         self,
         message: str,
@@ -17,7 +20,7 @@ class AppError(Exception):
         self.details = details or {}
         self.timestamp = datetime.utcnow().isoformat()
         super().__init__(self.message)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert error to dictionary format for API responses"""
         return {
@@ -27,3 +30,14 @@ class AppError(Exception):
             "timestamp": self.timestamp,
             "details": self.details
         }
+
+
+def app_error_handler(error: "AppError") -> JSONResponse:
+    """Generic error handler for AppError"""
+    logger.error(
+        f"Application error: {error.message} (status: {error.status_code}, code: {error.error_code})"
+    )
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.to_dict(),
+    )

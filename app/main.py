@@ -1,58 +1,55 @@
-from fastapi import FastAPI
-from .db import Base, engine
-from .core.expectations import (
-    app_error_handler,
-    http_exception_handler,
-    validation_exception_handler,
-    global_exception_handler
-)
-from .core.errors import AppError
-from .core.logger import logger
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from .routes.user import router as user_router
-from .routes.order import router as order_router
-from .routes.listing import router as listing_router
-from .routes.analytics import router as analytics_router
 from dotenv import load_dotenv
+import os
 
+# Load environment variables from .env file
 load_dotenv()
 
-from .core.cors import setup_cors 
-app = FastAPI(title="DeadStock API", version="1.0.0")
+from fastapi import FastAPI
+from app.core.cors import setup_cors
+from app.routes import user, listing, order, analytics
+from .db import Base, engine
+from app.core.errors import AppError, app_error_handler
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-setup_cors(app=app)
 
-app.add_exception_handler(AppError, app_error_handler)
-app.add_exception_handler(StarletteHTTPException, http_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(Exception, global_exception_handler)
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
-try:
-    logger.info("Creating database tables...")
-    Base.metadata.create_all(bind=engine)
-    logger.info("✅ Database tables created/verified successfully")
-except Exception as e:
-    logger.error(f"❌ Failed to create database tables: {type(e).__name__}: {str(e)}")
-    raise
+# Initialize FastAPI app
+app = FastAPI(
+    title="Deadstock API",
+    description="API for managing sneaker reselling marketplace",
+    version="1.0.0",
+)
 
-logger.info("🚀 Application started successfully")
+# Setup CORS
+setup_cors(app)
 
+# Add Routers
+app.include_router(user.router, prefix="/users", tags=["users"])
+app.include_router(listing.router, prefix="/listings", tags=["listings"])
+app.include_router(order.router, prefix="/orders", tags=["orders"])
+app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+
+
+# Exception handlers
+@app.exception_handler(AppError)
+async def custom_app_error_handler(request, exc):
+    return app_error_handler(exc)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    return app_error_handler(
+        AppError(
+            status_code=exc.status_code,
+            message=str(exc.detail),
+            error_code="HTTP_EXCEPTION",
+        )
+    )
+
+
+# Root endpoint
 @app.get("/")
 def read_root():
-    return {"message": "FastAPI + Docker is working 🚀"}
-
-@app.get("/health")
-def health_check():
-    """Health check endpoint to verify API is running"""
-    logger.debug("Health check requested")
-    return {
-        "status": "healthy",
-        "service": "DeadStock API",
-        "version": "1.0.0"
-    }
-    
-app.include_router(user_router)
-app.include_router(order_router)
-app.include_router(listing_router)
-app.include_router(analytics_router)
+    return {"message": "Welcome to the Deadstock API"}
